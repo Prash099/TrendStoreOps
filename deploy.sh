@@ -14,7 +14,7 @@ echo " Starting new container..."
 docker compose up -d --build
 
 echo " Logging in to Docker Hub..."
-echo "$DOCKER_HUB_PAT" | docker login -u "prash099" --password-stdin
+echo "$DOCKERHUB_CREDENTIALS" | docker login -u "prash099" --password-stdin
 
 echo " Pushing image to $TARGET_REPO"
 docker push $TARGET_REPO:latest
