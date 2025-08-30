@@ -45,7 +45,7 @@ pipeline {
                 // Apply both deployment and service manifests
                 script {
                     sh 'kubectl get nodes'
-                    echo "kubectl get nodes $"
+                    echo "kubectl get nodes"
                 }
                 sh "kubectl apply -f k8s/deployment.yaml"
                 sh "kubectl apply -f k8s/service.yaml"
