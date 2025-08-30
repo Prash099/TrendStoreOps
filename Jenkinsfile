@@ -30,11 +30,12 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Deploy') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                script {
+                    echo "Deploying dev branch..."
+                    sh 'chmod +x deploy.sh'
+                    sh './deploy.sh'
                 }
             }
         }
