@@ -1,51 +1,53 @@
 pipeline {
     agent any
+
     environment {
-        AWS_REGION = "ap-south-1"
-        CLUSTER_NAME = "trend-cluster"
-        DOCKERHUB_USER = "prash099"
-        IMAGE_NAME = "prash-trend-store-app"
+        DOCKERHUB_CREDENTIALS = 'docker-hub-pat'        // Jenkins global credential
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'    // Path to kubeconfig for EKS
+        IMAGE_NAME = 'prash099/prash-trend-store-app' // DockerHub repo
+        IMAGE_TAG = 'latest'
     }
+
     stages {
-        stage('Create EKS Cluster') {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Prash099/TrendStoreOps.git'
+            }
+        }
+
+        stage('Build Docker Image') {
             steps {
                 script {
-                    sh """
-                    eksctl create cluster \
-                      --name $CLUSTER_NAME \
-                      --region $AWS_REGION \
-                      --nodegroup-name standard-workers \
-                      --node-type t3.medium \
-                      --nodes 2 \
-                      --nodes-min 1 \
-                      --nodes-max 3 \
-                      --managed
-                    """
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
-        stage('Build & Push Docker Image') {
+
+        stage('Push Docker Image') {
             steps {
-                script {
-                    sh """
-                    docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .
-                    echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
-                    docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
-                    """
+                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
                 }
             }
         }
+
         stage('Deploy to EKS') {
             steps {
-                script {
-                    sh """
-                    aws eks update-kubeconfig --region $AWS_REGION --name $CLUSTER_NAME
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
-                    """
-                }
+                // Update deployment image
+                sh "kubectl set image -f k8s/deployment.yml nginx-container=${IMAGE_NAME}:${IMAGE_TAG}"
+                
+                // Apply both deployment and service manifests
+                sh "kubectl apply -f k8s/deployment.yml"
+                sh "kubectl apply -f k8s/service.yml"
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh 'kubectl get pods'
+                sh 'kubectl get svc'
             }
         }
     }
 }
-
