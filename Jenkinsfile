@@ -8,6 +8,7 @@ pipeline {
         IMAGE_TAG = 'latest'
     }
 
+    
     stages {
         stage('Clone Repository') {
             steps {
