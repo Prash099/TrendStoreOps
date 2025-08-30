@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = 'docker-hub-pat'        // Jenkins global credential
-        KUBECONFIG = '/var/lib/jenkins/.kube/config'    // Path to kubeconfig for EKS
-        IMAGE_NAME = 'prash099/prash-trend-store-app' // DockerHub repo
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub-pat')
+        KUBECONFIG = '/var/lib/jenkins/.kube/config'
+        IMAGE_NAME = 'prash099/prash-trend-store-app'
         IMAGE_TAG = 'latest'
     }
 
