@@ -25,6 +25,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image..."
+                sh 'chmod +x build.sh'
                 sh './build.sh'
             }
         }
