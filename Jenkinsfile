@@ -43,7 +43,7 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 // Update deployment image
-                sh "kubectl set image -f k8s/deployment.yml nginx-container=${IMAGE_NAME}:${IMAGE_TAG}"
+                sh "kubectl set image -f k8s/deployment.yaml nginx-container=${IMAGE_NAME}:${IMAGE_TAG}"
                 
                 // Apply both deployment and service manifests
                 sh "kubectl apply -f k8s/deployment.yaml"
